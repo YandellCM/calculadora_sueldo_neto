@@ -1,0 +1,13 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.reflex/
+web/
+states/
+assets/external/
+*.db
+*.sqlite3
+.vscode/
+.DS_Store
