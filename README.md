@@ -1,6 +1,6 @@
 # 🧮 Calculadora de Sueldo Neto
 
-Este es un programa en Python con Reflex (Python Web Framework) que permite calcular el sueldo neto de un empleado en República Dominicana, aplicando descuentos reales de seguridad social, ISR y bonificación.
+Este es un programa en Python con que permite calcular el sueldo neto de un empleado en República Dominicana, aplicando descuentos reales de seguridad social, ISR y bonificación.
 
 ## Versión de Python
 
@@ -8,7 +8,7 @@ Este es un programa en Python con Reflex (Python Web Framework) que permite calc
 
 ## Requisitos
 
-- Librería externa: reflex
+- Librería externa: Ninguna
 
 ## ¿Qué hace este programa?
 
@@ -20,8 +20,6 @@ Este es un programa en Python con Reflex (Python Web Framework) que permite calc
   - ISR (15% si gana más de RD$34,685)
   - Bonificación (10% si aplica)
   - Sueldo Neto final
-
-La aplicación se ejecuta como una página web local y actualiza los datos en tiempo real.
 
 ---
 
@@ -45,10 +43,6 @@ source venv/Scripts/activate
 
 pip install -r requirements.txt
 
-### 5. Ejecuta el programa Reflex:
+### 5. Ejecuta el programa
 
-reflex run
 
-### 6. Abre tu navegador en esta dirección:
-
-http://localhost:3000
