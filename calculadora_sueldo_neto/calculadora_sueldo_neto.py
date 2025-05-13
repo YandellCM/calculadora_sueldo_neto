@@ -1,73 +1,79 @@
-import reflex as rx
+def calcular_sueldo_neto():
+    """
+    Calcula el sueldo neto en la República Dominicana considerando
+    seguridad social, ISR según tramos anuales y bonificación.
+    """
 
-# Porcentajes oficiales para los cálculos
-tss = 0.0591  # Seguridad Social
-isr = 0.15    # Impuesto Sobre la Renta (si sueldo > 34685)
-bono = 0.10   # Bonificación (si aplica)
+    # Porcentajes aplicables
+    TSS_EMPLEADO = 0.0287
+    SFS_EMPLEADO = 0.0304
+    BONO_PORCENTAJE = 0.15
 
-# Clase que guarda los datos del formulario y realiza los cálculos
-class Estado(rx.State):
-    sueldo: float = 0.0
-    otros: float = 0.0
-    con_bono: bool = False
+    # Tramos anuales de ISR ajustados (con inflación estimada)
+    TRAMOS_ISR = [
+        (0.00, 456441.76, 0.00),        # Exento
+        (456441.77, 685517.66, 0.15),
+        (685517.67, 952417.77, 0.20),
+        (952417.78, float('inf'), 0.25)
+    ]
 
-    descuento_seg: float = 0.0
-    descuento_isr: float = 0.0
-    bonificacion: float = 0.0
-    sueldo_neto: float = 0.0
-
-    def set_sueldo(self, sueldo_str: str):
+    # Entradas
+    while True:
         try:
-            self.sueldo = float(sueldo_str)
+            sueldo_bruto = float(input("Ingrese el Sueldo Bruto mensual: RD$ "))
+            if sueldo_bruto >= 0:
+                break
+            print("Debe ser un número positivo.")
         except ValueError:
-            self.sueldo = 0.0
-            print("Entrada de sueldo inválida")
+            print("Entrada inválida.")
 
-    def set_otros(self, otros_str: str):
+    while True:
         try:
-            self.otros = float(otros_str)
+            otros_descuentos = float(input("Ingrese otros descuentos mensuales (0 si no aplica): RD$ "))
+            if otros_descuentos >= 0:
+                break
+            print("Debe ser un número positivo o cero.")
         except ValueError:
-            self.otros = 0.0
-            print("Entrada de otros descuentos inválida")
+            print("Entrada inválida.")
 
-    def set_con_bono(self, con_bono: bool):
-        self.con_bono = con_bono
+    aplica_bonificacion = input("¿Aplica bonificación? (si/no): ").strip().lower() == "si"
 
-    def calcular(self):
-        self.descuento_seg = self.sueldo * tss
-        self.descuento_isr = self.sueldo * isr if self.sueldo > 34685 else 0
-        self.bonificacion = self.sueldo * bono if self.con_bono else 0
-        self.sueldo_neto = (
-            self.sueldo - self.descuento_seg - self.descuento_isr - self.otros + self.bonificacion
-        )
+    # Cálculos
+    descuento_tss = sueldo_bruto * TSS_EMPLEADO
+    descuento_sfs = sueldo_bruto * SFS_EMPLEADO
+    total_descuento_seguridad = descuento_tss + descuento_sfs
 
-# Interfaz principal de la página web
-def vista():
-    return rx.center(
-        rx.vstack(
-            rx.heading("Calculadora de Sueldo Neto", size="5"),
-            rx.input(
-                placeholder="Escribe tu sueldo bruto",
-                on_change=Estado.set_sueldo,
-                type="number",  # Sugerir teclado numérico
-            ),
-            rx.input(
-                placeholder="Escribe otros descuentos",
-                on_change=Estado.set_otros,
-                type="number",  # Sugerir teclado numérico
-            ),
-            rx.checkbox("¿La empresa da bonificación?", on_change=Estado.set_con_bono),
-            rx.button("Calcular", on_click=Estado.calcular),
-            rx.divider(),
-            rx.text("Descuento Seguridad Social: ", rx.var(Estado.descuento_seg)),
-            rx.text("Descuento ISR: ", rx.var(Estado.descuento_isr)),
-            rx.text("Bonificación: ", rx.var(Estado.bonificacion)),
-            rx.text("Sueldo Neto: ", rx.var(Estado.sueldo_neto)),
-            spacing="2em",
-        ),
-        padding="2em",
-    )
+    retencion_isr = 0.0
+    sueldo_anual = sueldo_bruto * 12
 
-# Registro de la aplicación
-app = rx.App()
-app.add_page(vista)
+    for minimo, maximo, porcentaje in TRAMOS_ISR:
+        if minimo <= sueldo_anual <= maximo:
+            exceso = sueldo_anual - minimo
+            retencion_anual = exceso * porcentaje
+            retencion_isr = retencion_anual / 12
+            break
+        elif sueldo_anual > maximo and maximo != float('inf'):
+            exceso = maximo - minimo
+            retencion_isr += (exceso * porcentaje) / 12
+        elif sueldo_anual > maximo and maximo == float('inf'):
+            exceso = sueldo_anual - minimo
+            retencion_isr += (exceso * porcentaje) / 12
+            break
+
+    bonificacion = sueldo_bruto * BONO_PORCENTAJE if aplica_bonificacion else 0.0
+
+    sueldo_neto = sueldo_bruto - total_descuento_seguridad - retencion_isr - otros_descuentos + bonificacion
+
+    # Resultados
+    print("\n--- Resultados del Cálculo de Sueldo Neto ---")
+    print(f"Sueldo Bruto: RD$ {sueldo_bruto:.2f}")
+    print(f"Descuento TSS (2.87%): RD$ {descuento_tss:.2f}")
+    print(f"Descuento SFS (3.04%): RD$ {descuento_sfs:.2f}")
+    print(f"Total Seguridad Social: RD$ {total_descuento_seguridad:.2f}")
+    print(f"Retención ISR: RD$ {retencion_isr:.2f}")
+    print(f"Otros Descuentos: RD$ {otros_descuentos:.2f}")
+    print(f"Bonificación: RD$ {bonificacion:.2f}" if aplica_bonificacion else "Bonificación: No aplica")
+    print(f"**Sueldo Neto: RD$ {sueldo_neto:.2f}**")
+
+if __name__ == "__main__":
+    calcular_sueldo_neto()
